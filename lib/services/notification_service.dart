@@ -1,6 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
 import 'api_client.dart';
 
@@ -16,6 +17,25 @@ class NotificationService {
 
   static const _channelId = 'new_orders';
   static const _channelName = 'New orders';
+  static const _prefKey = 'notifications_enabled';
+
+  /// Settings screen's Notifications toggle. This only controls the
+  /// in-app foreground banner shown by [_showForegroundNotification] —
+  /// there's no backend field for a manager-level notification
+  /// preference, and background/killed-app pushes are handled by the OS
+  /// once FCM delivers them, which no app-side flag can suppress. So
+  /// "off" here means "don't pop a banner while I'm already looking at
+  /// the app", not "stop all notifications" — the toggle's subtitle in
+  /// Settings says this explicitly rather than implying more than it does.
+  static Future<bool> notificationsEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_prefKey) ?? true;
+  }
+
+  static Future<void> setNotificationsEnabled(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_prefKey, value);
+  }
 
   static Future<void> init({required GlobalKey<NavigatorState> navigatorKey}) async {
     await _messaging.requestPermission(alert: true, badge: true, sound: true);
@@ -77,6 +97,7 @@ class NotificationService {
   }
 
   static Future<void> _showForegroundNotification(RemoteMessage message) async {
+    if (!await notificationsEnabled()) return;
     final title = message.notification?.title ?? 'New order';
     final body = message.notification?.body ?? '';
     final orderId = message.data['order_id'];

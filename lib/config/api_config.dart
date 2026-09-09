@@ -32,4 +32,9 @@ class ApiConfig {
 
   static const String deviceToken = '$baseUrl/manager/device-token';
   static const String unregisterDeviceToken = '$baseUrl/manager/device-token/unregister';
+
+  // Not manager-scoped (no auth needed) — same static content the
+  // customer-facing site shows (Api\StaticContentApiController).
+  static const String termsPage = '$baseUrl/pages/terms';
+  static const String privacyPage = '$baseUrl/pages/privacy';
 }
