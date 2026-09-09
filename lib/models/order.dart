@@ -46,6 +46,9 @@ class Order {
   final String paymentStatus;
   final String orderStatus;
   final String? placedAt;
+  final int itemCount;
+  final int estimatedDeliveryMin;
+  final String kitchenStatus;
 
   Order({
     required this.id,
@@ -61,6 +64,9 @@ class Order {
     required this.paymentStatus,
     required this.orderStatus,
     this.placedAt,
+    this.itemCount = 0,
+    this.estimatedDeliveryMin = 30,
+    this.kitchenStatus = 'new',
   });
 
   factory Order.fromJson(Map<String, dynamic> j) => Order(
@@ -77,5 +83,8 @@ class Order {
         paymentStatus: j['payment_status']?.toString() ?? 'pending',
         orderStatus: j['order_status']?.toString() ?? 'placed',
         placedAt: (j['placed_at'] ?? j['created_at'])?.toString(),
+        itemCount: int.tryParse(j['item_count']?.toString() ?? '') ?? 0,
+        estimatedDeliveryMin: int.tryParse(j['estimated_delivery_min']?.toString() ?? '') ?? 30,
+        kitchenStatus: (j['kitchen_status']?.toString().isEmpty ?? true) ? 'new' : j['kitchen_status'].toString(),
       );
 }

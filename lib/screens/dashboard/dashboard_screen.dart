@@ -6,9 +6,22 @@ import '../../services/order_service.dart';
 import '../../services/api_client.dart';
 import '../../state/app_state.dart';
 import '../../theme.dart';
+import '../../widgets/common/app_header.dart';
+import '../../widgets/common/hero_earnings_card.dart';
+import '../../widgets/common/stat_card.dart';
+import '../../widgets/common/buttons.dart';
+import '../../widgets/common/states.dart';
+import '../../widgets/common/recent_order_tile.dart';
 import '../../widgets/order_card.dart';
 import '../orders/order_detail_screen.dart';
+import '../orders/orders_screen.dart';
+import '../menu/menu_screen.dart';
+import '../profile/profile_screen.dart';
 
+/// Restaurant Home dashboard. Kept as `DashboardScreen`/same route slot
+/// as before (still tab 0 in [RootShell]) — only the layout changed, all
+/// data still comes from the same `RestaurantService.dashboard()` call
+/// (now returning a few additive fields; see that service for details).
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
   @override
@@ -64,106 +77,171 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  void _openOrder(int orderId) => Navigator.of(context)
+      .push(MaterialPageRoute(builder: (_) => OrderDetailScreen(orderId: orderId)))
+      .then((_) => _load());
+
+  void _goTab(Widget screen) => Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Dashboard')),
-      body: RefreshIndicator(
-        onRefresh: () async => _load(),
-        child: FutureBuilder<DashboardData>(
-          future: _future,
-          builder: (context, snapshot) {
-            if (!snapshot.hasData && !snapshot.hasError) {
-              return const Center(child: CircularProgressIndicator(color: AppTheme.primary));
-            }
-            if (snapshot.hasError) {
-              return ListView(children: [
-                const SizedBox(height: 80),
-                Center(child: Text('${snapshot.error}')),
-              ]);
-            }
-            final data = snapshot.data!;
-            return ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Row(
-                  children: [
-                    Expanded(child: _statCard(context, 'Total Orders', '${data.totalOrders}', Icons.receipt_long)),
-                    const SizedBox(width: 10),
-                    Expanded(child: _statCard(context, 'Menu Items', '${data.totalMenuItems}', Icons.restaurant_menu)),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                _statCard(context, 'Revenue (paid orders)', '₹${data.revenue.toStringAsFixed(0)}', Icons.currency_rupee),
-                const SizedBox(height: 24),
-                Text('New Orders (${data.pendingOrders.length})', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 10),
-                if (data.pendingOrders.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 24),
-                    child: Text('No new orders right now.', style: TextStyle(color: AppTheme.textSecondary(context))),
-                  )
-                else
-                  ...data.pendingOrders.map((order) => Column(
-                        children: [
-                          OrderCard(
-                            order: order,
-                            onTap: () => Navigator.of(context)
-                                .push(MaterialPageRoute(builder: (_) => OrderDetailScreen(orderId: order.id)))
-                                .then((_) => _load()),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 14),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: OutlinedButton(
-                                    onPressed: () => _quickReject(order.id),
-                                    style: OutlinedButton.styleFrom(foregroundColor: Colors.red, side: const BorderSide(color: Colors.red)),
-                                    child: const Text('Reject'),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: ElevatedButton(onPressed: () => _quickAccept(order.id), child: const Text('Accept')),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      )),
-                const SizedBox(height: 12),
-                Text('Recent Orders', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 10),
-                if (data.recentOrders.isEmpty)
-                  Text('No orders yet.', style: TextStyle(color: AppTheme.textSecondary(context)))
-                else
-                  ...data.recentOrders.map((order) => OrderCard(
-                        order: order,
-                        onTap: () => Navigator.of(context)
-                            .push(MaterialPageRoute(builder: (_) => OrderDetailScreen(orderId: order.id)))
-                            .then((_) => _load()),
-                      )),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
+      backgroundColor: AppTheme.scaffoldBg(context),
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () async => _load(),
+          color: AppTheme.primary,
+          child: FutureBuilder<DashboardData>(
+            future: _future,
+            builder: (context, snapshot) {
+              if (!snapshot.hasData && !snapshot.hasError) {
+                return const LoadingState();
+              }
+              if (snapshot.hasError) {
+                return ListView(children: [
+                  const SizedBox(height: 60),
+                  ErrorState(message: '${snapshot.error}', onRetry: _load),
+                ]);
+              }
+              final data = snapshot.data!;
+              final restaurantName = data.restaurant?.name.isNotEmpty == true ? data.restaurant!.name : 'Restaurant';
+              final isOpen = data.restaurant?.isOpenNow ?? true;
 
-  Widget _statCard(BuildContext context, String label, String value, IconData icon) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: AppTheme.primary),
-            const SizedBox(height: 8),
-            Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            Text(label, style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 12)),
-          ],
+              return ListView(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                children: [
+                  AppHeader(
+                    restaurantName: restaurantName,
+                    isOpen: isOpen,
+                    onMenuTap: () => _goTab(const ProfileScreen()),
+                  ),
+                  const SizedBox(height: 18),
+                  HeroEarningsCard(
+                    todaySales: data.todayRevenue,
+                    percentVsYesterday: data.percentVsYesterday,
+                    ordersToday: data.todayOrders,
+                  ),
+                  const SizedBox(height: 16),
+                  GridView.count(
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 1.55,
+                    children: [
+                      StatCard(
+                        label: 'Orders Today',
+                        value: '${data.todayOrders}',
+                        icon: Icons.receipt_long_rounded,
+                        color: Colors.blue,
+                        onTap: () => _goTab(const OrdersScreen()),
+                      ),
+                      StatCard(
+                        label: 'Pending Orders',
+                        value: '${data.pendingOrders.length}',
+                        icon: Icons.hourglass_top_rounded,
+                        color: Colors.orange,
+                        onTap: () => _goTab(const OrdersScreen()),
+                      ),
+                      StatCard(
+                        label: 'Completed Orders',
+                        value: '${data.completedToday}',
+                        icon: Icons.check_circle_rounded,
+                        color: Colors.green,
+                        onTap: () => _goTab(const OrdersScreen()),
+                      ),
+                      StatCard(
+                        label: 'Rating',
+                        value: data.restaurant != null && data.restaurant!.ratingCount > 0
+                            ? data.restaurant!.rating.toStringAsFixed(1)
+                            : '—',
+                        icon: Icons.star_rounded,
+                        color: AppTheme.gold,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 22),
+                  Text('Quick Actions',
+                      style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w800, color: AppTheme.textPrimary(context))),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    decoration: BoxDecoration(color: AppTheme.surface(context), borderRadius: BorderRadius.circular(18)),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        QuickActionButton(
+                            label: 'Orders', icon: Icons.receipt_long_rounded, onTap: () => _goTab(const OrdersScreen())),
+                        QuickActionButton(
+                            label: 'Menu', icon: Icons.restaurant_menu_rounded, color: Colors.orange, onTap: () => _goTab(const MenuScreen())),
+                        QuickActionButton(
+                            label: 'Earnings',
+                            icon: Icons.account_balance_wallet_rounded,
+                            color: Colors.green,
+                            onTap: () => ScaffoldMessenger.of(context)
+                                .showSnackBar(const SnackBar(content: Text('Earnings — coming in the next update')))),
+                        QuickActionButton(
+                            label: 'Wallet',
+                            icon: Icons.savings_rounded,
+                            color: Colors.purple,
+                            onTap: () => ScaffoldMessenger.of(context)
+                                .showSnackBar(const SnackBar(content: Text('Wallet — coming in the next update')))),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  if (data.pendingOrders.isNotEmpty) ...[
+                    Text('New Orders (${data.pendingOrders.length})',
+                        style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w800, color: AppTheme.textPrimary(context))),
+                    const SizedBox(height: 10),
+                    ...data.pendingOrders.map((order) => Column(
+                          children: [
+                            OrderCard(order: order, onTap: () => _openOrder(order.id)),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 14),
+                              child: Row(
+                                children: [
+                                  Expanded(child: SecondaryButton(label: 'Reject', color: Colors.red, onPressed: () => _quickReject(order.id))),
+                                  const SizedBox(width: 10),
+                                  Expanded(child: PrimaryButton(label: 'Accept', onPressed: () => _quickAccept(order.id))),
+                                ],
+                              ),
+                            ),
+                          ],
+                        )),
+                    const SizedBox(height: 8),
+                  ],
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Recent Activity',
+                          style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w800, color: AppTheme.textPrimary(context))),
+                      TextButton(
+                        onPressed: () => _goTab(const OrdersScreen()),
+                        child: const Text('View All', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w700)),
+                      ),
+                    ],
+                  ),
+                  if (data.recentOrders.isEmpty)
+                    const EmptyState(icon: Icons.receipt_long_outlined, title: 'No orders yet')
+                  else
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      decoration: BoxDecoration(color: AppTheme.surface(context), borderRadius: BorderRadius.circular(18)),
+                      child: Column(
+                        children: [
+                          for (int i = 0; i < data.recentOrders.length; i++) ...[
+                            RecentOrderTile(order: data.recentOrders[i], onTap: () => _openOrder(data.recentOrders[i].id)),
+                            if (i != data.recentOrders.length - 1) Divider(height: 1, color: AppTheme.borderColor(context)),
+                          ],
+                        ],
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );

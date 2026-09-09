@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../state/app_state.dart';
+import '../theme.dart';
 import '../screens/dashboard/dashboard_screen.dart';
 import '../screens/orders/orders_screen.dart';
 import '../screens/menu/menu_screen.dart';
@@ -24,32 +25,85 @@ class _RootShellState extends State<RootShell> {
     const ProfileScreen(),
   ];
 
+  static const _items = [
+    (icon: Icons.home_rounded, outline: Icons.home_outlined, label: 'Home'),
+    (icon: Icons.receipt_long_rounded, outline: Icons.receipt_long_outlined, label: 'Orders'),
+    (icon: Icons.restaurant_menu_rounded, outline: Icons.restaurant_menu_outlined, label: 'Menu'),
+    (icon: Icons.storefront_rounded, outline: Icons.storefront_outlined, label: 'Profile'),
+  ];
+
   @override
   Widget build(BuildContext context) {
     final pending = context.watch<AppState>().pendingOrderCount;
 
     return Scaffold(
       body: IndexedStack(index: _index, children: _tabs),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: [
-          const NavigationDestination(
-              icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: 'Dashboard'),
-          NavigationDestination(
-            icon: Badge(
-              label: Text('$pending'),
-              isLabelVisible: pending > 0,
-              child: const Icon(Icons.receipt_long_outlined),
+      bottomNavigationBar: DecoratedBox(
+        decoration: BoxDecoration(
+          color: AppTheme.surface(context),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, -4))],
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: List.generate(_items.length, (i) {
+                final item = _items[i];
+                final selected = i == _index;
+                final showBadge = i == 1 && pending > 0;
+                return Expanded(
+                  child: InkWell(
+                    onTap: () => setState(() => _index = i),
+                    borderRadius: BorderRadius.circular(16),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: selected ? AppTheme.primary.withOpacity(0.10) : Colors.transparent,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Icon(selected ? item.icon : item.outline,
+                                  size: 24, color: selected ? AppTheme.primary : AppTheme.textSecondary(context)),
+                              if (showBadge)
+                                Positioned(
+                                  right: -6,
+                                  top: -4,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                    decoration: BoxDecoration(color: AppTheme.primary, borderRadius: BorderRadius.circular(10)),
+                                    constraints: const BoxConstraints(minWidth: 16),
+                                    child: Text('$pending',
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            item.label,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                              color: selected ? AppTheme.primary : AppTheme.textSecondary(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
             ),
-            selectedIcon: const Icon(Icons.receipt_long),
-            label: 'Orders',
           ),
-          const NavigationDestination(
-              icon: Icon(Icons.restaurant_menu_outlined), selectedIcon: Icon(Icons.restaurant_menu), label: 'Menu'),
-          const NavigationDestination(
-              icon: Icon(Icons.storefront_outlined), selectedIcon: Icon(Icons.storefront), label: 'Profile'),
-        ],
+        ),
       ),
     );
   }

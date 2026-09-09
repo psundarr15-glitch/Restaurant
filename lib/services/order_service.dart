@@ -25,8 +25,18 @@ class OrderService {
     );
   }
 
-  static Future<void> accept(int orderId) => ApiClient.post(ApiConfig.acceptOrder(orderId));
+  static Future<void> accept(int orderId, {int? prepTimeMin}) => ApiClient.post(
+        ApiConfig.acceptOrder(orderId),
+        prepTimeMin != null ? {'prep_time_min': prepTimeMin} : null,
+      );
 
   static Future<void> reject(int orderId, {String? reason}) =>
       ApiClient.post(ApiConfig.rejectOrder(orderId), {'reason': reason});
+
+  /// Kitchen board's Start Preparing (new→preparing) / Mark Ready
+  /// (preparing→ready). Updates `kitchen_status` only — a restaurant-side
+  /// prep tracker kept separate from `order_status`, which the delivery
+  /// partner flow owns (see ManagerApiController::updateKitchenStatus).
+  static Future<void> updateKitchenStatus(int orderId, String kitchenStatus) =>
+      ApiClient.post(ApiConfig.kitchenStatus(orderId), {'kitchen_status': kitchenStatus});
 }

@@ -65,6 +65,11 @@ class OrderCard extends StatelessWidget {
                     Text('#${order.orderCode}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                     const SizedBox(height: 2),
                     Text(order.customerName ?? '', style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 13)),
+                    if (order.itemCount > 0) ...[
+                      const SizedBox(height: 2),
+                      Text('${order.itemCount} item${order.itemCount == 1 ? '' : 's'}',
+                          style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 12)),
+                    ],
                   ],
                 ),
               ),
@@ -77,6 +82,15 @@ class OrderCard extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(6)),
                     child: Text(statusLabel(order.orderStatus), style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600)),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    order.paymentStatus == 'paid' ? 'Paid' : (order.paymentMethod.toUpperCase()),
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      color: order.paymentStatus == 'paid' ? Colors.green.shade700 : AppTheme.textSecondary(context),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),

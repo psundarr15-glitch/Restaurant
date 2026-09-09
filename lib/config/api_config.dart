@@ -28,6 +28,7 @@ class ApiConfig {
   static String orderDetails(int id) => '$baseUrl/manager/orders/$id';
   static String acceptOrder(int id) => '$baseUrl/manager/orders/$id/accept';
   static String rejectOrder(int id) => '$baseUrl/manager/orders/$id/reject';
+  static String kitchenStatus(int id) => '$baseUrl/manager/orders/$id/kitchen-status';
 
   static const String deviceToken = '$baseUrl/manager/device-token';
   static const String unregisterDeviceToken = '$baseUrl/manager/device-token/unregister';

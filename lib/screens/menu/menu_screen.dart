@@ -4,6 +4,9 @@ import '../../services/menu_service.dart';
 import '../../services/api_client.dart';
 import '../../theme.dart';
 import '../../widgets/menu_item_tile.dart';
+import '../../widgets/common/search_and_filter.dart';
+import '../../widgets/common/states.dart';
+import '../../widgets/common/buttons.dart';
 import 'menu_item_form_screen.dart';
 
 class MenuScreen extends StatefulWidget {
@@ -14,6 +17,8 @@ class MenuScreen extends StatefulWidget {
 
 class _MenuScreenState extends State<MenuScreen> {
   Future<MenuData>? _future;
+  String _search = '';
+  String _category = 'All';
 
   @override
   void initState() {
@@ -68,57 +73,90 @@ class _MenuScreenState extends State<MenuScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Menu'),
-        actions: [IconButton(icon: const Icon(Icons.add), onPressed: _add)],
+      backgroundColor: AppTheme.scaffoldBg(context),
+      appBar: AppBar(title: const Text('Menu')),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _add,
+        backgroundColor: AppTheme.primary,
+        icon: const Icon(Icons.add),
+        label: const Text('Add Food'),
       ),
-      body: RefreshIndicator(
-        onRefresh: () async => _load(),
-        child: FutureBuilder<MenuData>(
-          future: _future,
-          builder: (context, snapshot) {
-            if (!snapshot.hasData && !snapshot.hasError) {
-              return const Center(child: CircularProgressIndicator(color: AppTheme.primary));
-            }
-            if (snapshot.hasError) {
-              return ListView(children: [const SizedBox(height: 80), Center(child: Text('${snapshot.error}'))]);
-            }
-            final menu = snapshot.data!;
-            if (menu.items.isEmpty) {
-              return ListView(children: [
-                const SizedBox(height: 100),
-                Center(
-                  child: Column(children: [
-                    Icon(Icons.restaurant_menu_outlined, size: 48, color: Colors.grey.shade400),
-                    const SizedBox(height: 12),
-                    Text('No menu items yet.', style: TextStyle(color: AppTheme.textSecondary(context))),
-                    const SizedBox(height: 12),
-                    ElevatedButton(onPressed: _add, child: const Text('Add your first item')),
-                  ]),
-                ),
-              ]);
-            }
-            return ListView(
-              padding: const EdgeInsets.all(16),
-              children: menu.grouped.entries.map((entry) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8, top: 8),
-                      child: Text(entry.key, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    ),
-                    ...entry.value.map((item) => MenuItemTile(
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () async => _load(),
+          color: AppTheme.primary,
+          child: FutureBuilder<MenuData>(
+            future: _future,
+            builder: (context, snapshot) {
+              if (!snapshot.hasData && !snapshot.hasError) {
+                return const LoadingState();
+              }
+              if (snapshot.hasError) {
+                return ListView(children: [
+                  const SizedBox(height: 60),
+                  ErrorState(message: '${snapshot.error}', onRetry: _load),
+                ]);
+              }
+              final menu = snapshot.data!;
+              if (menu.items.isEmpty) {
+                return ListView(children: [
+                  const SizedBox(height: 60),
+                  EmptyState(
+                    icon: Icons.restaurant_menu_outlined,
+                    title: 'No menu items yet',
+                    subtitle: 'Add your first menu item to start receiving orders.',
+                    actionLabel: 'Add Item',
+                    onAction: _add,
+                  ),
+                ]);
+              }
+
+              final categories = ['All', ...menu.grouped.keys];
+              if (!categories.contains(_category)) _category = 'All';
+
+              // categoryByItemId lets the card show its section name even
+              // though the "All" view flattens everything into one list.
+              final categoryByItemId = <int, String>{};
+              menu.grouped.forEach((cat, items) {
+                for (final it in items) {
+                  categoryByItemId[it.id] = cat;
+                }
+              });
+
+              var visible = _category == 'All' ? menu.items : (menu.grouped[_category] ?? []);
+              if (_search.trim().isNotEmpty) {
+                final q = _search.trim().toLowerCase();
+                visible = visible.where((i) => i.name.toLowerCase().contains(q)).toList();
+              }
+
+              return ListView(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
+                children: [
+                  AppSearchBar(hint: 'Search menu items', onChanged: (v) => setState(() => _search = v)),
+                  const SizedBox(height: 12),
+                  FilterChipRow(
+                    labels: categories,
+                    selectedIndex: categories.indexOf(_category),
+                    onSelected: (i) => setState(() => _category = categories[i]),
+                  ),
+                  const SizedBox(height: 14),
+                  if (visible.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 40),
+                      child: EmptyState(icon: Icons.search_off_rounded, title: 'No items match'),
+                    )
+                  else
+                    ...visible.map((item) => MenuItemTile(
                           item: item,
+                          categoryName: _category == 'All' ? categoryByItemId[item.id] : null,
                           onAvailabilityChanged: (_) => _toggle(item),
                           onEdit: () => _edit(item),
                           onDelete: () => _delete(item),
                         )),
-                  ],
-                );
-              }).toList(),
-            );
-          },
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
