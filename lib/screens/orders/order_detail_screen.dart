@@ -85,6 +85,18 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
   }
 
+  Future<void> _markFoodReady() async {
+    setState(() => _acting = true);
+    try {
+      await OrderService.updateKitchenStatus(widget.orderId, 'ready');
+      _load();
+    } on ApiException catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    } finally {
+      if (mounted) setState(() => _acting = false);
+    }
+  }
+
   Future<void> _call(String phone) async {
     final uri = Uri(scheme: 'tel', path: phone);
     if (await canLaunchUrl(uri)) await launchUrl(uri);
@@ -278,6 +290,31 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     Expanded(flex: 2, child: PrimaryButton(label: 'ACCEPT ORDER', loading: _acting, onPressed: _accept)),
                   ],
                 ),
+              ],
+
+              // Shown once the order's accepted and still in progress —
+              // one tap marks it ready and pings the assigned delivery
+              // partner immediately (see OrderService.updateKitchenStatus /
+              // ManagerApiController::notifyDeliveryPartnerFoodReady).
+              if (!isPending && !['delivered', 'cancelled'].contains(order.orderStatus)) ...[
+                const SizedBox(height: 20),
+                if (order.kitchenStatus == 'ready')
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(14)),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.check_circle_rounded, color: Colors.green.shade700, size: 18),
+                        const SizedBox(width: 8),
+                        Text('Food ready — delivery partner notified',
+                            style: TextStyle(color: Colors.green.shade700, fontWeight: FontWeight.w700, fontSize: 13)),
+                      ],
+                    ),
+                  )
+                else
+                  PrimaryButton(label: 'FOOD READY', color: Colors.green, loading: _acting, onPressed: _markFoodReady),
               ],
             ],
           );
