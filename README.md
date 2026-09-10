@@ -25,6 +25,14 @@ for it again if you don't have it):
 
 See that patch's own README for the full list of new endpoints.
 
+
+## Latest app improvements
+
+- Version `1.0.1+2` — production polish update.
+- Restaurant API GET/POST requests now have safe timeouts and clearer offline/server error messages instead of hanging indefinitely.
+- Multipart uploads have a longer bounded timeout and the same friendly network-error handling.
+- Existing manager authentication, order notifications, dashboard polling, menu, offers, reviews, wallet, settlements and restaurant-profile flows are retained.
+
 ## 1. Backend URL
 
 Already set in `lib/config/api_config.dart`:
