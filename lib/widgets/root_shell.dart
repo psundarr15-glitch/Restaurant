@@ -5,8 +5,13 @@ import '../theme.dart';
 import '../screens/dashboard/dashboard_screen.dart';
 import '../screens/orders/orders_screen.dart';
 import '../screens/menu/menu_screen.dart';
+import '../screens/earnings/earnings_screen.dart';
 import '../screens/profile/profile_screen.dart';
 
+/// Bottom nav, per the Phase 5 brief's navigation note: primary nav
+/// stays Home/Orders/Menu/Earnings/Profile; Analytics/Wallet/
+/// Settlements live inside EarningsScreen as secondary navigation
+/// instead of getting their own tabs (see that screen).
 class RootShell extends StatefulWidget {
   final int initialIndex;
   const RootShell({super.key, this.initialIndex = 0});
@@ -22,6 +27,7 @@ class _RootShellState extends State<RootShell> {
     const DashboardScreen(),
     const OrdersScreen(),
     const MenuScreen(),
+    const EarningsScreen(),
     const ProfileScreen(),
   ];
 
@@ -29,6 +35,7 @@ class _RootShellState extends State<RootShell> {
     (icon: Icons.home_rounded, outline: Icons.home_outlined, label: 'Home'),
     (icon: Icons.receipt_long_rounded, outline: Icons.receipt_long_outlined, label: 'Orders'),
     (icon: Icons.restaurant_menu_rounded, outline: Icons.restaurant_menu_outlined, label: 'Menu'),
+    (icon: Icons.account_balance_wallet_rounded, outline: Icons.account_balance_wallet_outlined, label: 'Earnings'),
     (icon: Icons.storefront_rounded, outline: Icons.storefront_outlined, label: 'Profile'),
   ];
 
@@ -45,7 +52,7 @@ class _RootShellState extends State<RootShell> {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: List.generate(_items.length, (i) {
@@ -70,7 +77,7 @@ class _RootShellState extends State<RootShell> {
                             clipBehavior: Clip.none,
                             children: [
                               Icon(selected ? item.icon : item.outline,
-                                  size: 24, color: selected ? AppTheme.primary : AppTheme.textSecondary(context)),
+                                  size: 23, color: selected ? AppTheme.primary : AppTheme.textSecondary(context)),
                               if (showBadge)
                                 Positioned(
                                   right: -6,
@@ -90,7 +97,7 @@ class _RootShellState extends State<RootShell> {
                           Text(
                             item.label,
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: 10.5,
                               fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                               color: selected ? AppTheme.primary : AppTheme.textSecondary(context),
                             ),

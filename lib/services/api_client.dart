@@ -60,13 +60,26 @@ class ApiClient {
     return _decode(res);
   }
 
+  /// Supports List values (e.g. `item_ids: [1, 2]`) by repeating the key —
+  /// `item_ids[]=1&item_ids[]=2` — which is what PHP's getPost('item_ids')
+  /// expects to come back as an array. Scalar fields work exactly as
+  /// before.
   static Future<Map<String, dynamic>> post(String url, [Map<String, dynamic>? fields]) async {
-    final body = <String, String>{};
+    final pairs = <String>[];
     fields?.forEach((k, v) {
-      if (v != null) body[k] = v.toString();
+      if (v == null) return;
+      if (v is List) {
+        for (final item in v) {
+          pairs.add('${Uri.encodeQueryComponent('$k[]')}=${Uri.encodeQueryComponent(item.toString())}');
+        }
+      } else {
+        pairs.add('${Uri.encodeQueryComponent(k)}=${Uri.encodeQueryComponent(v.toString())}');
+      }
     });
 
-    final res = await http.post(Uri.parse(url), headers: await _headers(), body: body);
+    final headers = await _headers();
+    headers['Content-Type'] = 'application/x-www-form-urlencoded';
+    final res = await http.post(Uri.parse(url), headers: headers, body: pairs.join('&'));
     return _decode(res);
   }
 

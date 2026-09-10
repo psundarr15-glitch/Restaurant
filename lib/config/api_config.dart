@@ -33,6 +33,31 @@ class ApiConfig {
   static const String deviceToken = '$baseUrl/manager/device-token';
   static const String unregisterDeviceToken = '$baseUrl/manager/device-token/unregister';
 
+  // --- Phase 5 ---
+  static String earnings(String range, {String? from, String? to}) {
+    var url = '$baseUrl/manager/earnings?range=$range';
+    if (from != null) url += '&from=$from';
+    if (to != null) url += '&to=$to';
+    return url;
+  }
+
+  static String salesAnalytics(String range) => '$baseUrl/manager/sales-analytics?range=$range';
+
+  static const String wallet = '$baseUrl/manager/wallet';
+  static const String walletTransactions = '$baseUrl/manager/wallet-transactions';
+
+  static const String settlements = '$baseUrl/manager/settlements';
+  static String settlementDetails(int id) => '$baseUrl/manager/settlements/$id';
+
+  static const String reviews = '$baseUrl/manager/reviews';
+  static String replyToReview(int id) => '$baseUrl/manager/reviews/$id/reply';
+
+  static const String offers = '$baseUrl/manager/offers';
+  static const String addOffer = '$baseUrl/manager/offers/add';
+  static String updateOffer(int id) => '$baseUrl/manager/offers/$id/update';
+  static String toggleOffer(int id) => '$baseUrl/manager/offers/$id/toggle';
+  static String deleteOffer(int id) => '$baseUrl/manager/offers/$id/delete';
+
   // Not manager-scoped (no auth needed) — same static content the
   // customer-facing site shows (Api\StaticContentApiController).
   static const String termsPage = '$baseUrl/pages/terms';

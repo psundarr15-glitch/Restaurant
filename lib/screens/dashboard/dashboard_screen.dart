@@ -17,6 +17,9 @@ import '../orders/order_detail_screen.dart';
 import '../orders/orders_screen.dart';
 import '../menu/menu_screen.dart';
 import '../profile/profile_screen.dart';
+import '../earnings/earnings_screen.dart';
+import '../reviews/reviews_screen.dart';
+import '../offers/offers_screen.dart';
 
 /// Restaurant Home dashboard. Kept as `DashboardScreen`/same route slot
 /// as before (still tab 0 in [RootShell]) — only the layout changed, all
@@ -116,10 +119,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     onMenuTap: () => _goTab(const ProfileScreen()),
                   ),
                   const SizedBox(height: 18),
-                  HeroEarningsCard(
-                    todaySales: data.todayRevenue,
-                    percentVsYesterday: data.percentVsYesterday,
-                    ordersToday: data.todayOrders,
+                  GestureDetector(
+                    onTap: () => _goTab(const EarningsScreen()),
+                    child: HeroEarningsCard(
+                      todaySales: data.todayRevenue,
+                      percentVsYesterday: data.percentVsYesterday,
+                      ordersToday: data.todayOrders,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   GridView.count(
@@ -158,6 +164,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             : '—',
                         icon: Icons.star_rounded,
                         color: AppTheme.gold,
+                        onTap: () => _goTab(const ReviewsScreen()),
                       ),
                     ],
                   ),
@@ -176,17 +183,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         QuickActionButton(
                             label: 'Menu', icon: Icons.restaurant_menu_rounded, color: Colors.orange, onTap: () => _goTab(const MenuScreen())),
                         QuickActionButton(
-                            label: 'Earnings',
-                            icon: Icons.account_balance_wallet_rounded,
-                            color: Colors.green,
-                            onTap: () => ScaffoldMessenger.of(context)
-                                .showSnackBar(const SnackBar(content: Text('Earnings — coming in the next update')))),
+                            label: 'Reviews',
+                            icon: Icons.star_rounded,
+                            color: AppTheme.gold,
+                            onTap: () => _goTab(const ReviewsScreen())),
                         QuickActionButton(
-                            label: 'Wallet',
-                            icon: Icons.savings_rounded,
+                            label: 'Offers',
+                            icon: Icons.local_offer_rounded,
                             color: Colors.purple,
-                            onTap: () => ScaffoldMessenger.of(context)
-                                .showSnackBar(const SnackBar(content: Text('Wallet — coming in the next update')))),
+                            onTap: () => _goTab(const OffersScreen())),
                       ],
                     ),
                   ),
