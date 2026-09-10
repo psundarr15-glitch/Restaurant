@@ -64,13 +64,13 @@ class _SettlementDetailsScreenState extends State<SettlementDetailsScreen> {
               _sectionCard(context, title: 'Settlement Information', children: [
                 _row(context, 'Status', settlement.status[0].toUpperCase() + settlement.status.substring(1)),
                 _row(context, 'Orders', '${settlement.orderCount}'),
-                if (settlement.settlementDate != null) _row(context, 'Settlement Date', settlement.settlementDate),
+                if (settlement.settlementDate != null) _row(context, 'Settlement Date', settlement.settlementDate!),
               ]),
               const SizedBox(height: 14),
               if (settlement.bankAccountNumber != null)
                 _sectionCard(context, title: 'Bank Account', children: [
                   _row(context, 'Account Holder', settlement.bankAccountHolder ?? '—'),
-                  _row(context, 'Account Number', _maskAccount(settlement.bankAccountNumber)),
+                  _row(context, 'Account Number', _maskAccount(settlement.bankAccountNumber!)),
                   _row(context, 'IFSC', settlement.bankIfsc ?? '—'),
                 ]),
               const SizedBox(height: 14),
