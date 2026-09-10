@@ -44,7 +44,7 @@ class _KitchenScreenState extends State<KitchenScreen> {
   void initState() {
     super.initState();
     _load();
-    _poller = Timer.periodic(const Duration(seconds: 20), (_) => _load(silent: true));
+    _poller = Timer.periodic(const Duration(seconds: 10), (_) => _load(silent: true));
     _ticker = Timer.periodic(const Duration(seconds: 60), (_) => setState(() {}));
   }
 

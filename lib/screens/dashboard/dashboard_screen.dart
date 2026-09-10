@@ -41,7 +41,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _load();
     // Keeps the "New Order" queue fresh even if a push notification is
     // missed (app backgrounded, notifications permission denied, etc).
-    _poller = Timer.periodic(const Duration(seconds: 20), (_) => _load(silent: true));
+    _poller = Timer.periodic(const Duration(seconds: 10), (_) => _load(silent: true));
   }
 
   @override
