@@ -20,11 +20,12 @@ class EarningsScreen extends StatefulWidget {
 }
 
 class _EarningsScreenState extends State<EarningsScreen> {
-  static const _ranges = ['today', 'yesterday', 'week', 'month'];
-  static const _rangeLabels = ['Today', 'Yesterday', 'This Week', 'This Month'];
+  static const _ranges = ['today', 'yesterday', 'week', 'month', 'custom'];
+  static const _rangeLabels = ['Today', 'Yesterday', 'This Week', 'This Month', 'Custom'];
 
   Future<EarningsData>? _future;
   int _rangeIndex = 0;
+  DateTimeRange? _customRange;
 
   @override
   void initState() {
@@ -33,7 +34,34 @@ class _EarningsScreenState extends State<EarningsScreen> {
   }
 
   void _load() {
-    setState(() => _future = FinanceService.earnings(_ranges[_rangeIndex]));
+    if (_ranges[_rangeIndex] == 'custom' && _customRange == null) return;
+    setState(() => _future = FinanceService.earnings(
+          _ranges[_rangeIndex],
+          from: _customRange != null ? _fmt(_customRange!.start) : null,
+          to: _customRange != null ? _fmt(_customRange!.end) : null,
+        ));
+  }
+
+  String _fmt(DateTime d) => '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  Future<void> _selectRange(int i) async {
+    if (_ranges[i] == 'custom') {
+      final picked = await showDateRangePicker(
+        context: context,
+        firstDate: DateTime.now().subtract(const Duration(days: 730)),
+        lastDate: DateTime.now(),
+        initialDateRange: _customRange ?? DateTimeRange(start: DateTime.now().subtract(const Duration(days: 7)), end: DateTime.now()),
+      );
+      if (picked == null) return; // user cancelled — keep the previous range selected
+      setState(() {
+        _customRange = picked;
+        _rangeIndex = i;
+      });
+      _load();
+    } else {
+      setState(() => _rangeIndex = i);
+      _load();
+    }
   }
 
   String _money(double v) => '₹${v.toStringAsFixed(0)}';
@@ -102,10 +130,19 @@ class _EarningsScreenState extends State<EarningsScreen> {
                   const SizedBox(height: 22),
                   Text('Financial Breakdown', style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w800, color: AppTheme.textPrimary(context))),
                   const SizedBox(height: 10),
-                  FilterChipRow(labels: _rangeLabels, selectedIndex: _rangeIndex, onSelected: (i) {
-                    setState(() => _rangeIndex = i);
-                    _load();
-                  }),
+                  FilterChipRow(labels: _rangeLabels, selectedIndex: _rangeIndex, onSelected: _selectRange),
+                  if (_ranges[_rangeIndex] == 'custom' && _customRange != null) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(Icons.date_range_rounded, size: 14, color: AppTheme.textSecondary(context)),
+                        const SizedBox(width: 6),
+                        Text('${_fmt(_customRange!.start)} to ${_fmt(_customRange!.end)}', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary(context))),
+                        const Spacer(),
+                        TextButton(onPressed: () => _selectRange(_rangeIndex), child: const Text('Change', style: TextStyle(fontSize: 12))),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   Container(
                     width: double.infinity,
