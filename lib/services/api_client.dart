@@ -1,8 +1,10 @@
 import 'dart:convert';
-import 'dart:async';
 import 'dart:io';
+import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+
+const Duration _apiTimeout = Duration(seconds: 20);
 
 /// Thin wrapper around http that:
 /// - attaches "Authorization: Bearer <token>" automatically
@@ -57,19 +59,8 @@ class ApiClient {
   }
 
   static Future<Map<String, dynamic>> get(String url) async {
-    try {
-      final res = await http.get(Uri.parse(url), headers: await _headers())
-          .timeout(const Duration(seconds: 25));
-      return _decode(res);
-    } on ApiException {
-      rethrow;
-    } on SocketException {
-      throw ApiException('No internet connection. Please check your network and try again.', 0);
-    } on TimeoutException {
-      throw ApiException('The server took too long to respond. Please try again.', 0);
-    } catch (_) {
-      throw ApiException('Unable to connect to the server. Please try again.', 0);
-    }
+    final res = await http.get(Uri.parse(url), headers: await _headers());
+    return _decode(res);
   }
 
   /// Supports List values (e.g. `item_ids: [1, 2]`) by repeating the key —
@@ -91,19 +82,8 @@ class ApiClient {
 
     final headers = await _headers();
     headers['Content-Type'] = 'application/x-www-form-urlencoded';
-    try {
-      final res = await http.post(Uri.parse(url), headers: headers, body: pairs.join('&'))
-          .timeout(const Duration(seconds: 25));
-      return _decode(res);
-    } on ApiException {
-      rethrow;
-    } on SocketException {
-      throw ApiException('No internet connection. Please check your network and try again.', 0);
-    } on TimeoutException {
-      throw ApiException('The server took too long to respond. Please try again.', 0);
-    } catch (_) {
-      throw ApiException('Unable to connect to the server. Please try again.', 0);
-    }
+    final res = await http.post(Uri.parse(url), headers: headers, body: pairs.join('&'));
+    return _decode(res);
   }
 
   /// For endpoints that take file uploads alongside regular fields (e.g.
@@ -130,18 +110,15 @@ class ApiClient {
       }
     }
 
+    http.StreamedResponse streamed;
     try {
-      final streamed = await request.send().timeout(const Duration(seconds: 40));
-      final res = await http.Response.fromStream(streamed);
-      return _decode(res);
-    } on ApiException {
-      rethrow;
+      streamed = await request.send().timeout(_apiTimeout);
     } on SocketException {
       throw ApiException('No internet connection. Please check your network and try again.', 0);
     } on TimeoutException {
       throw ApiException('The upload took too long. Please try again.', 0);
-    } catch (_) {
-      throw ApiException('Unable to connect to the server. Please try again.', 0);
     }
+    final res = await http.Response.fromStream(streamed);
+    return _decode(res);
   }
 }
