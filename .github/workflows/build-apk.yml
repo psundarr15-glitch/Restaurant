@@ -30,7 +30,7 @@ jobs:
       # Flutter SDK version on this runner. Safe to run on an existing
       # project: it does not overwrite lib/ or pubspec.yaml.
       - name: Ensure Android platform files exist
-        run: flutter create --platforms=android --org com.foodexpress --project-name restaurant_app .
+        run: flutter create --platforms=android --org com.jeevifoodie --project-name restaurant .
 
       # Generates android/app/src/main/res/mipmap-*/ic_launcher.png (and the
       # iOS AppIcon set) from assets/icon/icon.png + icon_foreground.png.
@@ -145,7 +145,7 @@ jobs:
       #
       # Setup (one-time):
       #   1. Firebase Console -> Add Android app -> package name
-      #      com.foodexpress.restaurant_app -> download google-services.json
+      #      com.jeevifoodie.restaurant -> download google-services.json
       #      (this MUST be a separate app registration from the customer
       #      app's - same Firebase project is fine, but package names
       #      differ, so the json differs too)
