@@ -8,7 +8,7 @@ class RestaurantChatService {
   String? _threadId;
 
   Future<void> connect({int? orderId}) async {
-    final url = orderId == null ? ApiConfig.chatFirebaseToken : ApiConfig.chatFirebaseToken(orderId);
+    final String url = orderId == null ? ApiConfig.chatFirebaseToken() : ApiConfig.chatFirebaseToken(orderId);
     final res = await ApiClient.get(url);
     _threadId = res['thread_id']?.toString();
     final token = res['token']?.toString();
