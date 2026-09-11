@@ -7,6 +7,7 @@ import '../screens/orders/orders_screen.dart';
 import '../screens/menu/menu_screen.dart';
 import '../screens/earnings/earnings_screen.dart';
 import '../screens/profile/profile_screen.dart';
+import '../screens/chat/chats_screen.dart';
 
 /// Bottom nav, per the Phase 5 brief's navigation note: primary nav
 /// stays Home/Orders/Menu/Earnings/Profile; Analytics/Wallet/
@@ -29,6 +30,7 @@ class _RootShellState extends State<RootShell> {
     const MenuScreen(),
     const EarningsScreen(),
     const ProfileScreen(),
+    const ChatsScreen(),
   ];
 
   static const _items = [
@@ -37,6 +39,7 @@ class _RootShellState extends State<RootShell> {
     (icon: Icons.restaurant_menu_rounded, outline: Icons.restaurant_menu_outlined, label: 'Menu'),
     (icon: Icons.account_balance_wallet_rounded, outline: Icons.account_balance_wallet_outlined, label: 'Earnings'),
     (icon: Icons.storefront_rounded, outline: Icons.storefront_outlined, label: 'Profile'),
+    (icon: Icons.chat_bubble_rounded, outline: Icons.chat_bubble_outline, label: 'Chats'),
   ];
 
   @override

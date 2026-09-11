@@ -31,6 +31,8 @@ class ApiConfig {
   static String kitchenStatus(int id) => '$baseUrl/manager/orders/$id/kitchen-status';
 
   static const String deviceToken = '$baseUrl/manager/device-token';
+  static String chatFirebaseToken([int? orderId]) => orderId == null ? '$baseUrl/manager/chat/firebase-token' : '$baseUrl/manager/chat/firebase-token?order_id=$orderId';
+
   static const String unregisterDeviceToken = '$baseUrl/manager/device-token/unregister';
 
   // --- Phase 5 ---
