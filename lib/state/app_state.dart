@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../models/manager.dart';
 import '../services/api_client.dart';
 import '../services/order_service.dart';
+import '../config/api_config.dart';
 import '../services/notification_service.dart';
 
 class AppState extends ChangeNotifier {
@@ -13,6 +14,17 @@ class AppState extends ChangeNotifier {
     final token = await ApiClient.getToken();
     isLoggedIn = token != null;
     if (isLoggedIn) {
+      try {
+        final res = await ApiClient.get(ApiConfig.me);
+        currentManager = Manager.fromJson(res['manager'] as Map<String, dynamic>);
+      } catch (_) {
+        isLoggedIn = false;
+        await ApiClient.setToken(null);
+      }
+      if (!isLoggedIn) {
+        notifyListeners();
+        return;
+      }
       await refreshPendingCount();
       // Re-attach the FCM token now that we have an auth token - covers
       // the case where Firebase got a token before login happened.

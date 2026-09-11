@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import '../config/api_config.dart';
 import '../models/manager.dart';
 import 'api_client.dart';
@@ -19,5 +20,6 @@ class AuthService {
       // Even if the network call fails, still clear the local token below.
     }
     await ApiClient.setToken(null);
+    await FirebaseAuth.instance.signOut();
   }
 }
