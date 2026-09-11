@@ -9,111 +9,37 @@ import '../screens/earnings/earnings_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/chat/chats_screen.dart';
 
-/// Bottom nav, per the Phase 5 brief's navigation note: primary nav
-/// stays Home/Orders/Menu/Earnings/Profile; Analytics/Wallet/
-/// Settlements live inside EarningsScreen as secondary navigation
-/// instead of getting their own tabs (see that screen).
 class RootShell extends StatefulWidget {
   final int initialIndex;
   const RootShell({super.key, this.initialIndex = 0});
-
-  @override
-  State<RootShell> createState() => _RootShellState();
+  @override State<RootShell> createState() => _RootShellState();
 }
 
 class _RootShellState extends State<RootShell> {
   late int _index = widget.initialIndex;
-
-  static final _tabs = [
-    const DashboardScreen(),
-    const OrdersScreen(),
-    const MenuScreen(),
-    const EarningsScreen(),
-    const ProfileScreen(),
-    const ChatsScreen(),
-  ];
-
+  static const _tabs = [DashboardScreen(), OrdersScreen(), MenuScreen(), EarningsScreen(), ProfileScreen(), ChatsScreen()];
   static const _items = [
-    (icon: Icons.home_rounded, outline: Icons.home_outlined, label: 'Home'),
-    (icon: Icons.receipt_long_rounded, outline: Icons.receipt_long_outlined, label: 'Orders'),
-    (icon: Icons.restaurant_menu_rounded, outline: Icons.restaurant_menu_outlined, label: 'Menu'),
-    (icon: Icons.account_balance_wallet_rounded, outline: Icons.account_balance_wallet_outlined, label: 'Earnings'),
-    (icon: Icons.storefront_rounded, outline: Icons.storefront_outlined, label: 'Profile'),
-    (icon: Icons.chat_bubble_rounded, outline: Icons.chat_bubble_outline, label: 'Chats'),
+    (Icons.home_rounded, Icons.home_outlined, 'Home'),
+    (Icons.receipt_long_rounded, Icons.receipt_long_outlined, 'Orders'),
+    (Icons.restaurant_menu_rounded, Icons.restaurant_menu_outlined, 'Menu'),
+    (Icons.account_balance_wallet_rounded, Icons.account_balance_wallet_outlined, 'Earnings'),
+    (Icons.storefront_rounded, Icons.storefront_outlined, 'Profile'),
+    (Icons.chat_bubble_rounded, Icons.chat_bubble_outline_rounded, 'Chats'),
   ];
-
   @override
   Widget build(BuildContext context) {
     final pending = context.watch<AppState>().pendingOrderCount;
-
     return Scaffold(
       body: IndexedStack(index: _index, children: _tabs),
       bottomNavigationBar: DecoratedBox(
-        decoration: BoxDecoration(
-          color: AppTheme.surface(context),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, -4))],
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(_items.length, (i) {
-                final item = _items[i];
-                final selected = i == _index;
-                final showBadge = i == 1 && pending > 0;
-                return Expanded(
-                  child: InkWell(
-                    onTap: () => setState(() => _index = i),
-                    borderRadius: BorderRadius.circular(16),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: selected ? AppTheme.primary.withOpacity(0.10) : Colors.transparent,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              Icon(selected ? item.icon : item.outline,
-                                  size: 23, color: selected ? AppTheme.primary : AppTheme.textSecondary(context)),
-                              if (showBadge)
-                                Positioned(
-                                  right: -6,
-                                  top: -4,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                                    decoration: BoxDecoration(color: AppTheme.primary, borderRadius: BorderRadius.circular(10)),
-                                    constraints: const BoxConstraints(minWidth: 16),
-                                    child: Text('$pending',
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
-                                  ),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            item.label,
-                            style: TextStyle(
-                              fontSize: 10.5,
-                              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                              color: selected ? AppTheme.primary : AppTheme.textSecondary(context),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ),
-        ),
+        decoration: BoxDecoration(color: AppTheme.surface(context), boxShadow: const [BoxShadow(color: Color(0x16000000), blurRadius: 20, offset: Offset(0, -5))]),
+        child: SafeArea(top: false, child: SizedBox(height: 78, child: Row(children: List.generate(_items.length, (i) {
+          final selected = i == _index; final item = _items[i];
+          return Expanded(child: InkWell(onTap: () => setState(() => _index = i), child: Center(child: AnimatedContainer(duration: const Duration(milliseconds: 180), width: 60, height: 58, decoration: BoxDecoration(color: selected ? AppTheme.softRed : Colors.transparent, borderRadius: BorderRadius.circular(18)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Stack(clipBehavior: Clip.none, children: [Icon(selected ? item.$1 : item.$2, size: 23, color: selected ? AppTheme.primary : AppTheme.textSecondary(context)), if (i == 1 && pending > 0) Positioned(right: -8, top: -8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2), decoration: BoxDecoration(color: AppTheme.primary, borderRadius: BorderRadius.circular(10)), child: Text('$pending', style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900))))]),
+            const SizedBox(height: 4), Text(item.$3, style: TextStyle(fontSize: 10.5, fontWeight: selected ? FontWeight.w800 : FontWeight.w600, color: selected ? AppTheme.primary : AppTheme.textSecondary(context))),
+          ])))));
+        }))),
       ),
     );
   }
