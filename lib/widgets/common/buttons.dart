@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../../theme.dart';
 
 /// Full-width dominant CTA (e.g. "ACCEPT ORDER", "Save Item"). Wraps the
-/// app's existing ElevatedButton theme so call sites don't repeat sizing.
+/// app's existing ElevatedButton theme so call sites don't repeat sizing,
+/// and adds a soft brand-colored "floating" shadow underneath so the CTA
+/// reads as premium/lifted rather than a flat filled rectangle.
 class PrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -21,13 +23,18 @@ class PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 52,
+    final buttonColor = color ?? AppTheme.primary;
+    return Container(
+      height: 54,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        boxShadow: onPressed == null ? null : AppTheme.shadowColored(buttonColor),
+      ),
       child: ElevatedButton(
         onPressed: loading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: color ?? AppTheme.primary,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          backgroundColor: buttonColor,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusLg)),
           textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: 0.3),
         ),
         child: loading
@@ -57,13 +64,13 @@ class SecondaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 52,
+      height: 54,
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
           foregroundColor: color,
-          side: BorderSide(color: color),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          side: BorderSide(color: color, width: 1.4),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusLg)),
           textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
         ),
         child: Text(label),
@@ -91,16 +98,23 @@ class QuickActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(16)),
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [color.withOpacity(0.16), color.withOpacity(0.08)],
+                ),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              ),
               child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(height: 8),

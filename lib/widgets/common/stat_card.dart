@@ -24,30 +24,35 @@ class StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: AppTheme.surface(context),
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(AppTheme.radiusXl),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12, offset: const Offset(0, 4)),
-            ],
+            borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+            boxShadow: AppTheme.shadowSoft(context),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.all(9),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [color.withOpacity(0.18), color.withOpacity(0.08)],
+                  ),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                ),
                 child: Icon(icon, color: color, size: 20),
               ),
               const SizedBox(height: 12),
               Text(
                 value,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.textPrimary(context)),
+                style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900, color: AppTheme.textPrimary(context), letterSpacing: -0.4),
               ),
               const SizedBox(height: 2),
               Text(
